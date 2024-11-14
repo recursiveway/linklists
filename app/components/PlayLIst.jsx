@@ -117,6 +117,16 @@ const PlayList = () => {
     }
   };
 
+  const handleDeleteAll = () => {
+    // Clear localStorage
+    localStorage.removeItem('playlists');
+    // Clear state
+    setPlaylists([]);
+    // Remove any Instagram embed scripts
+    const embedScripts = document.querySelectorAll('script[src*="instagram.com/embed.js"]');
+    embedScripts.forEach(script => script.remove());
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <div className="w-full max-w-md p-6">
@@ -141,6 +151,13 @@ const PlayList = () => {
             className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
           >
             Create Playlist
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteAll}
+            className="w-full mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+          >
+            Delete All Playlists
           </button>
           <div className="mt-8">
             {playlists.map(playlist => (
