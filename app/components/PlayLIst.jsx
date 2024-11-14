@@ -64,17 +64,20 @@ const generateInstagramEmbed = (url) => {
 
 const PlayList = () => {
   const [playlists, setPlaylists] = useState([]);
+  const [currentUrls, setCurrentUrls] = useState(['']); // Array to hold multiple URL inputs
+  const [activePlaylist, setActivePlaylist] = useState(null);
 
   useEffect(() => {
-    // Load playlists from localStorage when component mounts (client-side only)
     const storedPlaylists = JSON.parse(localStorage.getItem('playlists') || '[]');
     setPlaylists(storedPlaylists);
-
-    // Load Instagram embed script for existing posts
-    loadInstagramEmbed();
   }, []);
 
-  // Function to load Instagram embed script and process embeds
+  useEffect(() => {
+    if (activePlaylist) {
+      loadInstagramEmbed();
+    }
+  }, [activePlaylist]);
+
   const loadInstagramEmbed = () => {
     if (window.instgrm) {
       window.instgrm.Embeds.process();
@@ -91,40 +94,61 @@ const PlayList = () => {
     }
   };
 
+  const handleAddUrlInput = () => {
+    setCurrentUrls([...currentUrls, '']);
+  };
+
+  const handleUrlChange = (index, value) => {
+    const newUrls = [...currentUrls];
+    newUrls[index] = value;
+    setCurrentUrls(newUrls);
+  };
+
+  const handleRemoveUrl = (index) => {
+    const newUrls = currentUrls.filter((_, i) => i !== index);
+    setCurrentUrls(newUrls);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const playlistName = e.target.playlistName.value;
-    const url = e.target.url.value;
-    const embedCode = generateInstagramEmbed(url);
+    
     if (playlistName.trim()) {
+      const embedCodes = currentUrls
+        .filter(url => url.trim())
+        .map(url => generateInstagramEmbed(url));
+
       const newPlaylist = {
         id: Date.now(),
         name: playlistName,
-        songs: [],
-        content: embedCode
+        posts: embedCodes,
+        postCount: embedCodes.length
       };
 
       const updatedPlaylists = [...playlists, newPlaylist];
       setPlaylists(updatedPlaylists);
       localStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
 
-      // Process Instagram embeds after adding new content
+      setCurrentUrls(['']);
+      e.target.reset();
+      
+      // Load embeds after adding new playlist
       setTimeout(() => {
         loadInstagramEmbed();
       }, 100);
-
-      e.target.reset();
     }
   };
 
   const handleDeleteAll = () => {
-    // Clear localStorage
     localStorage.removeItem('playlists');
-    // Clear state
     setPlaylists([]);
-    // Remove any Instagram embed scripts
+    setActivePlaylist(null);
     const embedScripts = document.querySelectorAll('script[src*="instagram.com/embed.js"]');
     embedScripts.forEach(script => script.remove());
+  };
+
+  const togglePlaylist = (playlistId) => {
+    setActivePlaylist(activePlaylist === playlistId ? null : playlistId);
   };
 
   return (
@@ -139,19 +163,44 @@ const PlayList = () => {
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          <input
-            type="text"
-            name="url"
-            placeholder="Enter Instagram post URL"
-            className="w-full mt-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+          
+          {currentUrls.map((url, index) => (
+            <div key={index} className="flex mt-4 gap-2">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => handleUrlChange(index, e.target.value)}
+                placeholder="Enter Instagram post URL"
+                className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+              {currentUrls.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveUrl(index)}
+                  className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+          
+          <button
+            type="button"
+            onClick={handleAddUrlInput}
+            className="w-full mt-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+          >
+            Add Another URL
+          </button>
+
           <button
             type="submit"
             className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
           >
             Create Playlist
           </button>
+          
           <button
             type="button"
             onClick={handleDeleteAll}
@@ -159,11 +208,27 @@ const PlayList = () => {
           >
             Delete All Playlists
           </button>
+
           <div className="mt-8">
             {playlists.map(playlist => (
-              <div key={playlist.id} className="mb-6 p-4 border rounded-lg">
-                <h2 className="text-xl font-semibold mb-2">{playlist.name}</h2>
-                <div dangerouslySetInnerHTML={{ __html: playlist.content }} />
+              <div key={playlist.id} className="mb-6">
+                <button
+                  onClick={() => togglePlaylist(playlist.id)}
+                  className="w-full p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 flex justify-between items-center"
+                >
+                  <span className="text-xl font-semibold">{playlist.name}</span>
+                  <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-sm">
+                    {playlist.postCount} posts
+                  </span>
+                </button>
+                
+                {activePlaylist === playlist.id && playlist.posts && (
+                  <div className="mt-4">
+                    {playlist.posts.map((content, index) => (
+                      <div key={index} className="mb-4" dangerouslySetInnerHTML={{ __html: content }} />
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
