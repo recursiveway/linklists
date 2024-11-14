@@ -27,11 +27,7 @@ const generateInstagramEmbed = (url) => {
           </g>
         </svg>
       </div>
-      <div style="padding-top: 8px;">
-        <div style=" color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550; line-height:18px;">
-          View this post on Instagram
-        </div>
-      </div>
+     
       <div style="padding: 12.5% 0;"></div>
       <div style="display: flex; flex-direction: row; margin-bottom: 14px; align-items: center;">
         <div>
@@ -66,8 +62,6 @@ const generateInstagramEmbed = (url) => {
   return embedCode;
 }
 
-
-
 const PlayList = () => {
   const [playlists, setPlaylists] = useState([]);
 
@@ -75,7 +69,27 @@ const PlayList = () => {
     // Load playlists from localStorage when component mounts (client-side only)
     const storedPlaylists = JSON.parse(localStorage.getItem('playlists') || '[]');
     setPlaylists(storedPlaylists);
+
+    // Load Instagram embed script for existing posts
+    loadInstagramEmbed();
   }, []);
+
+  // Function to load Instagram embed script and process embeds
+  const loadInstagramEmbed = () => {
+    if (window.instgrm) {
+      window.instgrm.Embeds.process();
+    } else {
+      const script = document.createElement('script');
+      script.src = '//www.instagram.com/embed.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.instgrm) {
+          window.instgrm.Embeds.process();
+        }
+      };
+      document.body.appendChild(script);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -94,11 +108,10 @@ const PlayList = () => {
       setPlaylists(updatedPlaylists);
       localStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
 
-      // Load Instagram embed script
-      const script = document.createElement('script');
-      script.src = '//www.instagram.com/embed.js';
-      script.async = true;
-      document.body.appendChild(script);
+      // Process Instagram embeds after adding new content
+      setTimeout(() => {
+        loadInstagramEmbed();
+      }, 100);
 
       e.target.reset();
     }
@@ -119,8 +132,8 @@ const PlayList = () => {
           <input
             type="text"
             name="url"
-            placeholder="Enter playlist name"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter Instagram post URL"
+            className="w-full mt-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
           <button
