@@ -14,7 +14,7 @@ const generateInstagramEmbed = (url) => {
       border: 1px solid #DBDBDB;
       border-radius: 12px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      margin: 16px auto;
+      margin: 0;
       width: 400px;
       min-width: 326px;
     ">
@@ -53,7 +53,7 @@ const generateYoutubeEmbed = (url) => {
     height="100%" 
     style="
       aspect-ratio: 9 / 16;
-      margin: auto; 
+      margin: 0;
       border: 0; 
       border-radius: 8px; 
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.19);
@@ -233,9 +233,9 @@ const PlayList = () => {
                 </button>
                 
                 {activePlaylist === playlist.id && playlist.posts && (
-                  <div className="mt-4">
+                  <div className="mt-0">
                     {playlist.posts.map((content, index) => (
-                      <div key={index} className="mb-4" dangerouslySetInnerHTML={{ __html: content }} />
+                      <div key={index} className="mb-0" dangerouslySetInnerHTML={{ __html: content }} />
                     ))}
                   </div>
                 )}
