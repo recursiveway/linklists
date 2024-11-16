@@ -15,55 +15,23 @@ const generateInstagramEmbed = (url) => {
       border-radius: 12px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       margin: 16px auto;
-      max-width: 540px;
+      width: 400px;
       min-width: 326px;
-      width: 100%;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
     ">
-    <div style="padding: 16px;">
-      <a href="${url}" target="_blank" style="text-decoration: none; color: inherit;">
-        <!-- Header -->
-        <div style="display: flex; align-items: center; margin-bottom: 16px;">
-          <div style="
-            background: #EFEFEF;
-            border-radius: 50%;
-            height: 40px;
-            width: 40px;
-            margin-right: 12px;">
-          </div>
-          <div>
-            <strong style="font-size: 14px; color: #262626;">Suyog Potdar</strong>
-            <br>
-            <span style="font-size: 12px; color: #8e8e8e;">@suyogpotdar</span>
-          </div>
-        </div>
-        <!-- Image Placeholder -->
-        <div style="
-          background: #EFEFEF;
-          width: 100%;
-          padding-top: 100%;
-          position: relative;
-          border-radius: 8px;
-          overflow: hidden;">
-          <img src="https://via.placeholder.com/540" 
-            alt="Instagram Post Image" 
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-        </div>
-        <!-- Caption -->
-        <p style="margin-top: 12px; font-size: 14px; color: #262626; line-height: 18px;">
-          A sample caption for the Instagram post. 
-          <span style="color: #00376b; cursor: pointer;">#hashtag</span>
-        </p>
-        <!-- Actions -->
-        <div style="display: flex; justify-content: space-between; margin-top: 16px; color: #8e8e8e;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span>❤️</span> <span>200 Likes</span>
-          </div>
-          <div>💬 10 Comments</div>
-        </div>
-      </a>
-    </div>
+    <a href="${url}" target="_blank" style="text-decoration: none; color: inherit;">
+      <!-- Media Section -->
+      <div style="
+        background: #EFEFEF;
+        width: 100%;
+        padding-top: 100%;
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;">
+        <img src="https://via.placeholder.com/540" 
+          alt="Instagram Post Media" 
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+      </div>
+    </a>
   </blockquote>
   <script async src="//www.instagram.com/embed.js"></script>
 `;
@@ -81,23 +49,21 @@ const generateYoutubeEmbed = (url) => {
   }
   return `
   <iframe 
-    width="100%" 
+    width="400px" 
     height="100%" 
     style="
       aspect-ratio: 9 / 16;
-      max-width: 360px; 
       margin: auto; 
       border: 0; 
       border-radius: 8px; 
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.19);
     " 
-    src="https://youtube.com/embed/${videoId}" 
-    title="YouTube Shorts Player" 
+    src="https://www.youtube.com/embed/${videoId}" 
+    title="YouTube Video Player" 
     frameborder="0" 
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
     allowfullscreen
-  >
-  </iframe>`;
+  ></iframe>`;
 }
 
 const PlayList = () => {
