@@ -66,30 +66,44 @@ const generateInstagramEmbed = (url) => {
 
 const generateYoutubeEmbed = (url) => {
   let videoId;
-  if (url.includes('shorts')) {
+  let isShort = false;
+
+  // Check if the URL is for YouTube Shorts
+  if (url.includes('/shorts/')) {
     videoId = url.split('/shorts/')[1].split('?')[0];
-  } else {
+    isShort = true;
+  } else if (url.includes('youtu.be')) {
+    // Handle short YouTube links (e.g., https://youtu.be/<videoId>)
+    videoId = url.split('youtu.be/')[1]?.split('?')[0];
+  } else if (url.includes('youtube.com')) {
+    // Handle standard YouTube links (e.g., https://www.youtube.com/watch?v=<videoId>)
     const urlParams = new URLSearchParams(new URL(url).search);
     videoId = urlParams.get('v');
+  } else {
+    throw new Error("Invalid YouTube URL");
   }
+
+  if (!videoId) {
+    throw new Error("Unable to extract video ID");
+  }
+
+  // Construct the embed URL - use different format for shorts vs regular videos
+  const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+
   return `
   <iframe 
-    width="400px" 
-    height="100%" 
-    style="
-      aspect-ratio: 9 / 16;
-      margin: 0;
-      border: 0; 
-      border-radius: 8px; 
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.19);
-    " 
-    src="https://www.youtube.com/embed/${videoId}" 
+    width="100%" 
+    height="${isShort ? '600' : '315'}" 
+    style="aspect-ratio: ${isShort ? '9 / 16' : '9 / 16'}; margin: 0; border: 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.19);" 
+    src="${embedUrl}" 
     title="YouTube Video Player" 
     frameborder="0" 
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
     allowfullscreen
   ></iframe>`;
-}
+};
+
+
 
 const PlayList = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -258,9 +272,9 @@ const PlayList = () => {
                 </button>
                 
                 {activePlaylist === playlist.id && playlist.posts && (
-                  <div className="mt-0">
+                  <div className="my-4">
                     {playlist.posts.map((content, index) => (
-                      <div key={index} className="mb-0" dangerouslySetInnerHTML={{ __html: content }} />
+                      <div key={index} className="my-4" dangerouslySetInnerHTML={{ __html: content }} />
                     ))}
                   </div>
                 )}
