@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
+import { signOut } from 'next-auth/react'
 
 const generateInstagramEmbed = (url) => {
   const instagramUrl = new URL(url);
@@ -204,7 +205,15 @@ const PlayList = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <div className="w-full max-w-md p-6">
-        <h1 className="text-2xl font-bold mb-4 text-center">Create Playlist</h1>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-center">Create Playlist</h1>
+          <button
+            onClick={() => signOut('google')}
+            className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
         <form onSubmit={handleSubmit}>
           <input
             type="text"

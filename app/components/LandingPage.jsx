@@ -1,22 +1,20 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import PlayList from './PlayLIst'
 import { signIn, useSession } from 'next-auth/react'
 
-
-
 const LandingPage = () => {
-const {data}=useSession()
-console.log("data",data)
+  const session = useSession()
+  
+ console.log("session", session)
+
 
   return (
- <>
-    {data ? (<PlayList/>) : (<>
-        <button onClick={()=>signIn('google')}>SIgn in with google</button>
-        
-        </>)}
-    
- </>
+    <>
+      {session ? (<PlayList />) : (<>
+        <button onClick={() => signIn()}>Sign in with google</button>
+      </>)}
+    </>
   )
 }
 
