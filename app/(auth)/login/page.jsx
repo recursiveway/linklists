@@ -26,7 +26,7 @@ export default function Login() {
       
       if (res.ok) {
         // Successfully logged in and token is set in HTTP-only cookie
-        router.push('/') // Redirect to home page
+        window.location.href = '/' // Use window.location.href to force full page reload
       } else {
         setError(data.error || 'Login failed')
       }

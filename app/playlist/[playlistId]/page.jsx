@@ -106,13 +106,12 @@ const generateInstagramEmbed = (url) => {
 
 export default function PlaylistPage({ params }) {
     const resolvedParams = use(params)
-    console.log("params", resolvedParams)
-  const [playlist, setPlaylist] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const router = useRouter()
+    const [playlist, setPlaylist] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [newUrl, setNewUrl] = useState('')
+    const router = useRouter()
 
-  useEffect(() => {
     const fetchPlaylist = async () => {
       try {
         const response = await fetch(`/api/get-playlist/${resolvedParams.playlistId}`, {
@@ -132,7 +131,6 @@ export default function PlaylistPage({ params }) {
         }
 
         const data = await response.json()
-        console.log("fsdadsdfasdfsadfsdfdata", data)
         setPlaylist(data)
         setLoading(false)
       } catch (err) {
@@ -141,64 +139,145 @@ export default function PlaylistPage({ params }) {
       }
     }
 
-    fetchPlaylist()
-  }, [resolvedParams.playlistId, router])
+    useEffect(() => {
+      fetchPlaylist()
+    }, [resolvedParams.playlistId, router])
 
-  if (loading) {
+    const handleAddUrl = async (e) => {
+      e.preventDefault()
+      try {
+        const response = await fetch('/api/create-playlist', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            playlistId: resolvedParams.playlistId,
+            urls: [newUrl]
+          }),
+          credentials: 'include'
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to add URL')
+        }
+
+        setNewUrl('')
+        fetchPlaylist()
+      } catch (err) {
+        setError(err.message)
+      }
+    }
+
+    const handleRemoveUrl = async (urlToRemove) => {
+      try {
+        const updatedUrls = playlist.links.filter(link => link.url !== urlToRemove).map(link => link.url)
+        
+        const response = await fetch('/api/create-playlist', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            playlistId: resolvedParams.playlistId,
+            urls: updatedUrls
+          }),
+          credentials: 'include'
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to remove URL')
+        }
+
+        fetchPlaylist()
+      } catch (err) {
+        setError(err.message)
+      }
+    }
+
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-xl">Loading...</div>
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-red-500">{error}</div>
+        </div>
+      )
+    }
+
+    if (!playlist) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-xl">Playlist not found</div>
+        </div>
+      )
+    }
+
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">{playlist.name}</h1>
+          <p className="text-gray-600">{playlist.description || 'No description'}</p>
+          <div className="mt-2 text-sm text-gray-500">
+            <span>{playlist.links?.length || 0} links • </span>
+            <span>Created {new Date(playlist.createdAt).toLocaleDateString()} • </span>
+            <span className={playlist.isPublic ? 'text-green-600' : 'text-red-600'}>
+              {playlist.isPublic ? 'Public' : 'Private'}
+            </span>
+          </div>
+        </div>
+
+        <form onSubmit={handleAddUrl} className="mb-8">
+          <div className="flex gap-4">
+            <input
+              type="url"
+              value={newUrl}
+              onChange={(e) => setNewUrl(e.target.value)}
+              placeholder="Add new YouTube or Instagram URL"
+              className="flex-1 p-2 border rounded"
+              required
+            />
+            <button 
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Add URL
+            </button>
+          </div>
+        </form>
+
+        {playlist.links?.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">
+            <p>This playlist has no links yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {playlist.links.map((link, index) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div dangerouslySetInnerHTML={{
+                  __html: link.url.includes('youtube.com') || link.url.includes('youtu.be') 
+                    ? generateYoutubeEmbed(link.url)
+                    : generateInstagramEmbed(link.url)
+                }} />
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500 break-all mb-2">{link.url}</p>
+                  <button
+                    onClick={() => handleRemoveUrl(link.url)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Remove URL
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">{error}</div>
-      </div>
-    )
-  }
-
-  if (!playlist) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Playlist not found</div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{playlist.name}</h1>
-        <p className="text-gray-600">{playlist.description || 'No description'}</p>
-        <div className="mt-2 text-sm text-gray-500">
-          <span>{playlist.links?.length || 0} links • </span>
-          <span>Created {new Date(playlist.createdAt).toLocaleDateString()} • </span>
-          <span className={playlist.isPublic ? 'text-green-600' : 'text-red-600'}>
-            {playlist.isPublic ? 'Public' : 'Private'}
-          </span>
-        </div>
-      </div>
-
-      {playlist.links?.length === 0 ? (
-        <div className="text-center text-gray-500 py-8">
-          <p>This playlist has no links yet.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {playlist.links.map((link, index) => (
-            <div key={index} className="border rounded-lg p-4">
-              <div dangerouslySetInnerHTML={{
-                __html: link.url.includes('youtube.com') || link.url.includes('youtu.be') 
-                  ? generateYoutubeEmbed(link.url)
-                  : generateInstagramEmbed(link.url)
-              }} />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
 }

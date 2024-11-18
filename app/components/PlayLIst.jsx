@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 const generateInstagramEmbed = (url) => {
   const instagramUrl = new URL(url);
@@ -102,6 +103,7 @@ const generateYoutubeEmbed = (url) => {
 };
 
 const PlayList = () => {
+  const router = useRouter();
   const [playlists, setPlaylists] = useState([]);
   const [currentUrls, setCurrentUrls] = useState(['']); // Array to hold multiple URL inputs
   const [activePlaylist, setActivePlaylist] = useState(null);
@@ -199,23 +201,14 @@ const PlayList = () => {
         setTimeout(() => {
           loadInstagramEmbed();
         }, 100);
+
+        // Redirect to profile page after successful playlist creation
+        router.push('/profile');
       } catch (error) {
         console.error('Error creating playlist:', error);
         // Handle error appropriately
       }
     }
-  };
-
-  const handleDeleteAll = () => {
-    localStorage.removeItem('playlists');
-    setPlaylists([]);
-    setActivePlaylist(null);
-    const embedScripts = document.querySelectorAll('script[src*="instagram.com/embed.js"]');
-    embedScripts.forEach(script => script.remove());
-  };
-
-  const togglePlaylist = (playlistId) => {
-    setActivePlaylist(activePlaylist === playlistId ? null : playlistId);
   };
 
   return (
@@ -267,38 +260,6 @@ const PlayList = () => {
           >
             Create Playlist
           </button>
-          
-          <button
-            type="button"
-            onClick={handleDeleteAll}
-            className="w-full mt-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-          >
-            Delete All Playlists
-          </button>
-
-          <div className="mt-8">
-            {playlists.map(playlist => (
-              <div key={playlist.id} className="mb-6">
-                <button
-                  onClick={() => togglePlaylist(playlist.id)}
-                  className="w-full p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 flex justify-between items-center"
-                >
-                  <span className="text-xl font-semibold">{playlist.name}</span>
-                  <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-sm">
-                    {playlist.postCount} posts
-                  </span>
-                </button>
-                
-                {activePlaylist === playlist.id && playlist.posts && (
-                  <div className="my-4">
-                    {playlist.posts.map((post, index) => (
-                      <div key={index} className="my-4" dangerouslySetInnerHTML={{ __html: post.embedCode }} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
         </form>
       </div>
     </div>

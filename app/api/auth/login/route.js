@@ -56,7 +56,6 @@ export async function POST(request) {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-    console.log("Login route called", token);
 
     // Remove password from response
     const userResponse = user.toObject();
