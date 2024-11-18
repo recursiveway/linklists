@@ -59,8 +59,6 @@ const generateInstagramEmbed = (url) => {
 </blockquote>
 <script async src="//www.instagram.com/embed.js"></script>`
 
-
-
   return embedCode;
 }
 
@@ -102,8 +100,6 @@ const generateYoutubeEmbed = (url) => {
     allowfullscreen
   ></iframe>`;
 };
-
-
 
 const PlayList = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -152,39 +148,61 @@ const PlayList = () => {
     setCurrentUrls(newUrls);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const playlistName = e.target.playlistName.value;
     
     if (playlistName.trim()) {
-      const embedCodes = currentUrls
+      const posts = currentUrls
         .filter(url => url.trim())
         .map(url => {
+          let embedCode;
           if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            return generateYoutubeEmbed(url);
+            embedCode = generateYoutubeEmbed(url);
           } else {
-            return generateInstagramEmbed(url);
+            embedCode = generateInstagramEmbed(url);
           }
+          return {
+            url: url,
+            embedCode: embedCode
+          };
         });
 
       const newPlaylist = {
         id: Date.now(),
         name: playlistName,
-        posts: embedCodes,
-        postCount: embedCodes.length
+        posts: posts,
+        postCount: posts.length
       };
 
-      const updatedPlaylists = [...playlists, newPlaylist];
-      setPlaylists(updatedPlaylists);
-      localStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
+      try {
+        const response = await fetch('/api/create-playlist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newPlaylist)
+        });
 
-      setCurrentUrls(['']);
-      e.target.reset();
-      
-      // Load embeds after adding new playlist
-      setTimeout(() => {
-        loadInstagramEmbed();
-      }, 100);
+        if (!response.ok) {
+          throw new Error('Failed to create playlist');
+        }
+
+        const updatedPlaylists = [...playlists, newPlaylist];
+        setPlaylists(updatedPlaylists);
+        localStorage.setItem('playlists', JSON.stringify(updatedPlaylists));
+
+        setCurrentUrls(['']);
+        e.target.reset();
+        
+        // Load embeds after adding new playlist
+        setTimeout(() => {
+          loadInstagramEmbed();
+        }, 100);
+      } catch (error) {
+        console.error('Error creating playlist:', error);
+        // Handle error appropriately
+      }
     }
   };
 
@@ -273,8 +291,8 @@ const PlayList = () => {
                 
                 {activePlaylist === playlist.id && playlist.posts && (
                   <div className="my-4">
-                    {playlist.posts.map((content, index) => (
-                      <div key={index} className="my-4" dangerouslySetInnerHTML={{ __html: content }} />
+                    {playlist.posts.map((post, index) => (
+                      <div key={index} className="my-4" dangerouslySetInnerHTML={{ __html: post.embedCode }} />
                     ))}
                   </div>
                 )}
